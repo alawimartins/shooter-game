@@ -1,0 +1,394 @@
+<!doctype html>
+<html>
+<head>
+    <style>
+        body {
+          margin: 0;
+        }
+        
+
+        </style>
+  <meta charset="utf-8">
+  <title>Hello World</title>
+</head>
+  <script src="pixi/pixi.min.js"></script>
+<body>
+    <script type="text/javascript">
+        //implementing the PIXI application and appending it to the body
+        const app = new PIXI.Application({
+            width: window.innerWidth, height: window.innerHeight, backgroundColor: 0x1099bb, resolution: 1, autoResize: true,
+        });
+       
+        document.body.appendChild(app.view);
+
+        //adding app to stage as constant
+        const stage = app.stage;
+
+        let score= 0;
+        let lifeScore = 3;
+        //adding scored points to the stage
+        const basicText = new PIXI.Text(`Points Scored: ${score}`);
+        basicText.anchor.x = 1;
+        stage.addChild(basicText)
+
+        //adding hearts to the stage
+        const lifeText = new PIXI.Text(`Number of Hearts: ${lifeScore}`);
+        stage.addChild(lifeText)
+
+        //if the players succeed, the WonScene would be added on the top of the 
+        //game with an option do go to the next level. The visibility is primarely set as false and would only turn true if condition is met
+
+        //1st step is to create a container where all the elements will be added to it.
+        const wonScene = new PIXI.Container();
+        stage.addChild(wonScene);
+        wonScene.visible = false;
+
+        //2nd step is to do the background of the message, which in this case is a rectangle
+        const restartBackground = new PIXI.Graphics();
+        restartBackground.beginFill(0xff0000); //adding color to the rectangle
+        restartBackground.drawRect(-200, -200, 400, 400); //setting the anchor and mesures
+        //3rd step is to add the restartBackground to the container WonScene. 
+        //Note: there is no need to add this to the stage as the whole container is already added to the stage.
+        wonScene.addChild(restartBackground);
+
+        //4th add a message at the top of the pop-up and add it to to the Pixi.graphics created above (restartBackground)
+        const wonMessage = new PIXI.Text("You Won!");
+        wonMessage.y = -restartBackground.height/2 + 20;
+        wonMessage.anchor.x = 0.5
+        wonMessage.anchor.y = 0
+        restartBackground.addChild(wonMessage);
+
+
+        //5th step to add the click button to go to next level 
+        //for this you will need to create a rectangle with a text inside by using Pixi.Graphics 
+        //and Pixi text and adding this to the restart background
+        const nextLevelButton = new PIXI.Graphics();
+        nextLevelButton.beginFill(0x000000); 
+        nextLevelButton.drawRect(-50, -25, 100, 50);
+
+        //6th step: add the button to the restart background 
+        restartBackground.addChild(nextLevelButton);
+
+        let nextLevelButtonStyle = new PIXI.TextStyle({
+            fontFamily: "Futura",
+            fontSize: 20,
+            fill: "white"
+        });
+        //7th add the message button in the button const 
+        const nextLevelText = new PIXI.Text("nextLevel", nextLevelButtonStyle);
+        nextLevelText.anchor.x = .5
+        nextLevelText.anchor.y = .5
+        nextLevelButton.addChild(nextLevelText)
+
+        //8th now we need to make the button interact.
+        nextLevelButton.interactive =true;
+        nextLevelButton.buttonMode = true;
+
+        //9th create a function with all the elements needed once we click on the button
+        function nextLevel2() {
+            wonScene.visible = false;
+            rect.x = 80
+            rect.y= 80
+            basicText.text = `Points Scored: ${score}`
+            lifeText.text = `Number of Hearts: ${lifeScore}`
+            paused = false;
+            for (let i = 0; i < targetsArray.length; i++) {
+                stage.removeChild(targetsArray[i])
+            }
+
+            targetsArray.length = 0
+
+            createEnemys(4)
+        }
+        //10th add the event on pointerdown.
+        nextLevelButton.on('pointerdown', nextLevel2);
+
+        //The gameOver pop-up will be the same idea as the WonScene
+        const gameOverScene = new PIXI.Container();
+        stage.addChild(gameOverScene);
+        gameOverScene.visible = false;
+
+        const gameOverBackground = new PIXI.Graphics();
+        gameOverBackground.beginFill(0x000000);
+        gameOverBackground.drawRect(-200, -200, 400, 400);
+
+        
+        gameOverScene.addChild(gameOverBackground);
+
+        let style = new PIXI.TextStyle({
+            fontFamily: "Futura",
+            fontSize: 64,
+            fill: "white"
+        });
+
+        const gameOverText = new PIXI.Text("Game Over", style);
+        gameOverText.anchor.x = 0.5
+        gameOverText.anchor.y = 1
+        gameOverBackground.addChild(gameOverText);
+        
+        const restartButton = new PIXI.Graphics();
+        restartButton.beginFill(0xff0000);
+        restartButton.drawRect(-50, -25, 100, 50);
+
+        gameOverBackground.addChild(restartButton)
+
+        let restartButtonStyle = new PIXI.TextStyle({
+            fontFamily: "Futura",
+            fontSize: 20,
+            fill: "white"
+        });
+
+        const restartText = new PIXI.Text("restart", restartButtonStyle);
+        restartText.anchor.x = .5
+        restartText.anchor.y = .5
+        restartButton.addChild(restartText)
+
+        restartButton.interactive = true;
+
+        // Shows hand cursor
+        restartButton.buttonMode = true;
+
+        function refreshPage(){
+            gameOverScene.visible = false;
+            rect.x = 80
+            rect.y= 80
+            score= 0;
+            lifeScore = 4;
+            basicText.text = `Points Scored: ${score}`
+            lifeText.text = `Number of Hearts: ${lifeScore}`
+            paused = false;
+            for (let i = 0; i < targetsArray.length; i++) {
+                stage.removeChild(targetsArray[i])
+            }
+
+            targetsArray.length = 0
+
+            createEnemys(2)
+        }
+
+        // Pointers normalize touch and mouse
+        restartButton.on('pointerdown', refreshPage)
+
+
+        //Define any variables that are used in more than one function
+        let velocity = {
+            x: 0,
+            y: 0,
+        }
+        let rect;
+        let targetsArray = []
+        let bulletsArray =[];
+
+        
+        // enemys function
+        function createEnemys(enemys) {
+            for(let i=0; i<enemys; i++){
+                const circle = new PIXI.Graphics()
+                circle.beginFill(0xffff00);
+                circle.drawCircle(0, 0, 10);
+                circle.x = Math.random() * app.screen.width;
+                circle.y = Math.random() * 200;
+
+                targetsArray.push(circle)
+
+                stage.addChild(circle)
+            }
+        }
+
+        //starting with 2 enemys
+        createEnemys(2)
+        
+        
+
+
+        //drawing the ship
+        function setup() {
+
+        //Create the `rect` sprite 
+        rect = new PIXI.Graphics();
+        rect.beginFill(0xff0000);
+        rect.drawRect(-20, -20, 40, 40);
+        rect.y = 96; 
+        rect.x = 80
+        stage.addChild(rect);
+
+        //Start the game loop 
+        app.ticker.add(delta => gameLoop(delta));
+        }  
+
+        /**
+         * EVENTS (Fire, move rect)
+         */
+        
+        document.body.onkeydown = onKeyDown;
+        document.body.onkeyup = onKeyUp;
+
+        const arrayMovements = [37, 38, 39, 40];
+
+        function onKeyUp (e) {
+            // if (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40) {
+            if (arrayMovements.indexOf(e.keyCode) > -1) {
+                velocity.x = velocity.y = 0;
+            }
+        }
+
+        function onKeyDown (e) {
+            if (e.keyCode == 32){ // space bar, fire
+                fire();
+            }
+            
+            if (e.keyCode === 37) { // left
+                velocity.x = -10;
+                velocity.y = 0;
+            } else if (e.keyCode === 38) { // top
+                velocity.x = 0;
+                velocity.y = -10;
+            } else if (e.keyCode === 39) { // right
+                velocity.x = 10;
+                velocity.y = 0;
+            } else if (e.keyCode === 40) { // bottom
+                velocity.x = 0;
+                velocity.y = 10;
+            }
+        }
+
+        window.addEventListener('resize', onResize)
+
+        function fire (){    
+            const circlePink = new PIXI.Graphics();
+            circlePink.beginFill('0xffc0cb');
+            circlePink.drawCircle(0, 0, 20);
+            circlePink.x = rect.x; 
+            circlePink.y = rect.y;
+
+            bulletsArray.push(circlePink)
+
+            stage.addChild(circlePink);
+
+            
+        }
+
+        let paused = false;
+
+        function gameLoop() {
+            
+            if (paused) return 
+            
+            //Use the rect's velocity to make it move
+            rect.x += velocity.x;
+            rect.y += velocity.y;
+
+            if(rect.x >= app.screen.width-30){
+                rect.x = app.screen.width - 30
+            } else if (rect.x <= 30) {
+                rect.x = 30;
+            }
+
+            if(rect.y >= app.screen.height - 30){
+                rect.y = app.screen.height - 30
+            } else if (rect.y <= 30) {
+                rect.y = 30;
+            }
+
+
+            // here move the bullets
+            // here increment the positions
+            for (let i = 0; i < bulletsArray.length; i++) {
+                bulletsArray[i].position.y -= 1.3
+            }
+
+            // here move the enemies
+            // here increment the positions
+            for (let i = 0; i < targetsArray.length; i++) {
+                const circle = targetsArray[i];
+                circle.x += .9; 
+            
+                if (circle.x >= app.screen.width) {
+                    circle.x =-Math.random() * 100;
+                }
+            }
+            
+
+            // here we will check for collisions
+            for(let j=0; j<bulletsArray.length; j++) {
+
+                for (let i = 0; i < targetsArray.length; i++) {
+                    let bullet = bulletsArray[j];
+
+                    let circle = targetsArray[i];
+                    var dx = bullet.x - circle.x;
+                    var dy = bullet.y - circle.y;
+                    var distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < bullet.width/2 + circle.width/2) {
+                        stage.removeChild(circle)
+                        stage.removeChild(bullet)
+                        bulletsArray.splice(j,1)
+                        
+                        targetsArray.splice(i,1)
+                        i--
+                        j--
+                        
+                        score = score + 10
+                        basicText.text = `Points Scored: ${score}`
+
+                        if (targetsArray.length === 0) {
+                            console.log('hi')
+                            wonScene.visible = true;
+                            
+                        }
+                        break;
+                    }
+                }    
+            }
+
+            for (let i = 0; i < targetsArray.length; i++) {
+
+                    let circle = targetsArray[i];
+                    var dx = rect.x - circle.x;
+                    var dy = rect.y - circle.y;
+                    var distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < circle.width/2 + rect.width/2) {
+                        lifeScore= lifeScore -1
+                        lifeText.text = `Number of Hearts: ${lifeScore}`
+                        if (lifeScore <1) {
+                            
+                            gameOverScene.visible = true;
+                            paused = true;
+                        }
+
+                        stage.removeChild(circle)
+                        targetsArray.splice(i,1)
+                        i--
+
+                        if (targetsArray.length === 0) {
+                            wonScene.visible = true;
+                            
+                        }
+                        
+                        break;
+
+                    }
+                }
+        }
+
+        function onResize () {
+            app.renderer.resize(window.innerWidth, window.innerHeight)
+
+            basicText.x = window.innerWidth - 20;
+            //app.renderer will get the full size of the canvas
+            gameOverBackground.y = app.renderer.height/2; 
+
+            gameOverBackground.x = app.renderer.width/2
+
+            restartBackground.x = app.renderer.width/2
+            restartBackground.y = app.renderer.height/2; 
+
+        }
+
+        setup();
+        onResize();
+
+
+</script>
+</body>
+</html>
