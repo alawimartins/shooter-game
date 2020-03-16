@@ -22,10 +22,30 @@
         document.body.appendChild(app.view);
 
         //adding app to stage as constant
-        const stage = app.stage;
 
+        const stage = app.stage;
+        
+        //Define any variables that are used in more than one function
+        let velocity = {
+            x: 0,
+            y: 0,
+        }
+        let rect;
+        let targetsArray = []
+        let bulletsArray =[];
+        let bulletsLeft = 3;
+        let bulletsEmpty = false;
         let score= 0;
         let lifeScore = 3;
+        let currentLevel = 0;
+        let levels = [{
+            bullets: 30,
+            enemys: 2,
+        }, {
+            bullets: 5,
+            enemys: 4
+        }]
+        
         //adding scored points to the stage
         const basicText = new PIXI.Text(`Points Scored: ${score}`);
         basicText.anchor.x = 1;
@@ -87,19 +107,19 @@
         //9th create a function with all the elements needed once we click on the button
         function nextLevel2() {
             wonScene.visible = false;
-            rect.x = 80
-            rect.y= 80
-            basicText.text = `Points Scored: ${score}`
-            lifeText.text = `Number of Hearts: ${lifeScore}`
-            paused = false;
-            for (let i = 0; i < targetsArray.length; i++) {
-                stage.removeChild(targetsArray[i])
-            }
 
-            targetsArray.length = 0
+            // clean the scene
 
-            createEnemys(4)
+             currentLevel++;
+             resetGame();
+             
+             startLevel();
+             
+
+          
         }
+
+
         //10th add the event on pointerdown.
         nextLevelButton.on('pointerdown', nextLevel2);
 
@@ -149,35 +169,43 @@
         restartButton.buttonMode = true;
 
         function refreshPage(){
+            // reset variables, clean scene etc.
+            currentLevel = 0;
             gameOverScene.visible = false;
-            rect.x = 80
-            rect.y= 80
+            
             score= 0;
             lifeScore = 4;
+            
+            resetGame();
+            
+
+            startLevel();
+        }
+
+        function resetGame(){
+            rect.y = app.screen.height - 150; 
+            rect.x = app.screen.width/2
+            bulletsEmpty = false
+            paused = false;
             basicText.text = `Points Scored: ${score}`
             lifeText.text = `Number of Hearts: ${lifeScore}`
-            paused = false;
             for (let i = 0; i < targetsArray.length; i++) {
                 stage.removeChild(targetsArray[i])
             }
+            for (let i = 0; i < bulletsArray.length; i++) {
+                stage.removeChild(bulletsArray[i])
+            }
 
             targetsArray.length = 0
-
-            createEnemys(2)
+            bulletsArray.length = 0
         }
+
 
         // Pointers normalize touch and mouse
         restartButton.on('pointerdown', refreshPage)
 
 
-        //Define any variables that are used in more than one function
-        let velocity = {
-            x: 0,
-            y: 0,
-        }
-        let rect;
-        let targetsArray = []
-        let bulletsArray =[];
+
 
         
         // enemys function
@@ -185,7 +213,7 @@
             for(let i=0; i<enemys; i++){
                 const circle = new PIXI.Graphics()
                 circle.beginFill(0xffff00);
-                circle.drawCircle(0, 0, 10);
+                circle.drawCircle(0, 0, 15);
                 circle.x = Math.random() * app.screen.width;
                 circle.y = Math.random() * 200;
 
@@ -196,7 +224,15 @@
         }
 
         //starting with 2 enemys
-        createEnemys(2)
+
+        function startLevel() {
+            // set the number of bullets
+            const levelData = levels[currentLevel];
+            createEnemys(levelData.enemys)
+            bulletsLeft = levelData.bullets;
+        }
+
+        startLevel();
         
         
 
@@ -208,8 +244,8 @@
         rect = new PIXI.Graphics();
         rect.beginFill(0xff0000);
         rect.drawRect(-20, -20, 40, 40);
-        rect.y = 96; 
-        rect.x = 80
+        rect.y = app.screen.height - 150; 
+        rect.x = app.screen.width/2
         stage.addChild(rect);
 
         //Start the game loop 
@@ -228,7 +264,7 @@
         function onKeyUp (e) {
             // if (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40) {
             if (arrayMovements.indexOf(e.keyCode) > -1) {
-                velocity.x = velocity.y = 0;
+                velocity.x = 0;
             }
         }
 
@@ -240,33 +276,38 @@
             if (e.keyCode === 37) { // left
                 velocity.x = -10;
                 velocity.y = 0;
-            } else if (e.keyCode === 38) { // top
-                velocity.x = 0;
-                velocity.y = -10;
-            } else if (e.keyCode === 39) { // right
+            }  else if (e.keyCode === 39) { // right
                 velocity.x = 10;
                 velocity.y = 0;
-            } else if (e.keyCode === 40) { // bottom
-                velocity.x = 0;
-                velocity.y = 10;
-            }
+            } 
         }
 
         window.addEventListener('resize', onResize)
 
         function fire (){    
-            const circlePink = new PIXI.Graphics();
-            circlePink.beginFill('0xffc0cb');
-            circlePink.drawCircle(0, 0, 20);
-            circlePink.x = rect.x; 
-            circlePink.y = rect.y;
+            if (bulletsEmpty) {
+                console.log('stop here because no bullets')
+                return;
+            }
 
-            bulletsArray.push(circlePink)
+            const bullet = new PIXI.Graphics();
+            bullet.beginFill('0xffc0cb');
+            bullet.drawCircle(0, 0, 20);
+            bullet.x = rect.x; 
+            bullet.y = rect.y;
+            bulletsLeft = bulletsLeft - 1
 
-            stage.addChild(circlePink);
+            bulletsArray.push(bullet)
 
             
+            stage.addChild(bullet);
+
+            if (bulletsLeft < 1) {
+                bulletsEmpty = true;
+                console.log('no more bullets')
+            }
         }
+
 
         let paused = false;
 
@@ -276,7 +317,7 @@
             
             //Use the rect's velocity to make it move
             rect.x += velocity.x;
-            rect.y += velocity.y;
+            //rect.y += velocity.y; the y axis will be fixed
 
             if(rect.x >= app.screen.width-30){
                 rect.x = app.screen.width - 30
@@ -284,17 +325,17 @@
                 rect.x = 30;
             }
 
-            if(rect.y >= app.screen.height - 30){
-                rect.y = app.screen.height - 30
-            } else if (rect.y <= 30) {
-                rect.y = 30;
-            }
-
 
             // here move the bullets
             // here increment the positions
             for (let i = 0; i < bulletsArray.length; i++) {
-                bulletsArray[i].position.y -= 1.3
+                bulletsArray[i].position.y -= 3
+                if (bulletsArray[i].position.y < 0) {
+                    stage.removeChild(bulletsArray[i])
+                    bulletsArray.splice(i,1)
+                    //decrement the i as the array is getting smaller
+                    i--
+                }
             }
 
             // here move the enemies
@@ -332,7 +373,6 @@
                         basicText.text = `Points Scored: ${score}`
 
                         if (targetsArray.length === 0) {
-                            console.log('hi')
                             wonScene.visible = true;
                             
                         }
@@ -341,34 +381,23 @@
                 }    
             }
 
-            for (let i = 0; i < targetsArray.length; i++) {
+            if (lifeScore<0) {
+                gameOverScene.visible = true; //this will make the player go back to level 0
+                paused = true;
+            }
 
-                    let circle = targetsArray[i];
-                    var dx = rect.x - circle.x;
-                    var dy = rect.y - circle.y;
-                    var distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < circle.width/2 + rect.width/2) {
-                        lifeScore= lifeScore -1
-                        lifeText.text = `Number of Hearts: ${lifeScore}`
-                        if (lifeScore <1) {
-                            
-                            gameOverScene.visible = true;
-                            paused = true;
-                        }
+            if (lifeScore>0) {
+                if (bulletsArray.length + bulletsLeft < targetsArray.length) {
+                    console.log(bulletsArray.length, bulletsLeft)
 
-                        stage.removeChild(circle)
-                        targetsArray.splice(i,1)
-                        i--
-
-                        if (targetsArray.length === 0) {
-                            wonScene.visible = true;
-                            
-                        }
-                        
-                        break;
-
-                    }
+                    lifeScore= lifeScore -1
+                    gameOverScene.visible = true
+                    console.log("hello")
+                    paused = true;//display a gameOverscene but to go back to the same level
                 }
+            }
+            
+
         }
 
         function onResize () {
