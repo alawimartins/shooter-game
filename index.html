@@ -33,23 +33,38 @@
         let rect;
         let targetsArray = []
         let bulletsArray =[];
-        let bulletsLeft = 3;
+        let bulletsLeft;
         let bulletsEmpty = false;
         let score= 0;
         let lifeScore = 3;
         let currentLevel = 0;
         let levels = [{
-            bullets: 30,
-            enemys: 2,
+            bullets: 6,
+            enemys: 1,
         }, {
-            bullets: 5,
-            enemys: 4
+            bullets: 3,
+            enemys: 1
+        }, {
+            bullets: 1,
+            enemys: 1
+        }, {
+            bullets: 1,
+            enemys: 1
         }]
         
         //adding scored points to the stage
         const basicText = new PIXI.Text(`Points Scored: ${score}`);
         basicText.anchor.x = 1;
         stage.addChild(basicText)
+
+        const bulletsText = new PIXI.Text(`Bullets Left: ${bulletsLeft}`);
+        bulletsText.anchor.x = .5;
+        stage.addChild(bulletsText)
+
+        const levelText = new PIXI.Text(`Level: ${currentLevel + 1}`);
+        stage.addChild(levelText)
+
+        
 
         //adding hearts to the stage
         const lifeText = new PIXI.Text(`Number of Hearts: ${lifeScore}`);
@@ -111,17 +126,71 @@
             // clean the scene
 
              currentLevel++;
+
+             if (currentLevel === 1) {
+                stage.addChild(bonusBullets)
+             }
              resetGame();
-             
+
              startLevel();
              
+        }
 
-          
+        //10th add the event on pointerdown.
+        nextLevelButton.on('pointerdown', nextLevel2);
+
+
+        const repeatScene = new PIXI.Container();
+        stage.addChild(repeatScene);
+        repeatScene.visible = false;
+
+
+        const repeatLevelBackground = new PIXI.Graphics();
+        repeatLevelBackground.beginFill(0xff0000); //adding color to the rectangle
+        repeatLevelBackground.drawRect(-200, -200, 400, 400); //setting the anchor and mesures
+  
+        repeatScene.addChild(repeatLevelBackground);
+
+        const repeatLevelMessage = new PIXI.Text("You lost, but you can still restart on the same level!");
+        repeatLevelMessage.y = -repeatLevelBackground.height/2 + 20;
+        repeatLevelMessage.anchor.x = 0.5
+        repeatLevelMessage.anchor.y = 0
+        repeatLevelBackground.addChild(repeatLevelMessage);
+
+
+        const repeatLevelButton = new PIXI.Graphics();
+        repeatLevelButton.beginFill(0x000000); 
+        repeatLevelButton.drawRect(-50, -25, 100, 50);
+
+        repeatLevelBackground.addChild(repeatLevelButton);
+
+        let repeatLevelButtonStyle = new PIXI.TextStyle({
+            fontFamily: "Futura",
+            fontSize: 20,
+            fill: "white"
+        });
+       
+        const repeatLevelText = new PIXI.Text("Repeat Level", repeatLevelButtonStyle);
+        repeatLevelText.anchor.x = .5
+        repeatLevelText.anchor.y = .5
+        repeatLevelButton.addChild(repeatLevelText)
+
+        repeatLevelButton.interactive =true;
+        repeatLevelButton.buttonMode = true;
+
+
+
+        function repeatCurrentLevel () {
+            repeatScene.visible = false;
+
+            resetGame();
+
+            startLevel();
         }
 
 
         //10th add the event on pointerdown.
-        nextLevelButton.on('pointerdown', nextLevel2);
+        repeatLevelButton.on('pointerdown', repeatCurrentLevel);
 
         //The gameOver pop-up will be the same idea as the WonScene
         const gameOverScene = new PIXI.Container();
@@ -171,6 +240,7 @@
         function refreshPage(){
             // reset variables, clean scene etc.
             currentLevel = 0;
+            
             gameOverScene.visible = false;
             
             score= 0;
@@ -215,7 +285,7 @@
                 circle.beginFill(0xffff00);
                 circle.drawCircle(0, 0, 15);
                 circle.x = Math.random() * app.screen.width;
-                circle.y = Math.random() * 200;
+                circle.y = Math.random() * 200 + 10;
 
                 targetsArray.push(circle)
 
@@ -223,6 +293,12 @@
             }
         }
 
+        const bonusBullets = new PIXI.Graphics()
+        bonusBullets.beginFill(0xff0000);
+        bonusBullets.drawCircle(0, 0, 15);
+        bonusBullets.x = Math.random() * app.screen.width;
+        bonusBullets.y = Math.random() * 200 + 10;
+        
         //starting with 2 enemys
 
         function startLevel() {
@@ -230,6 +306,8 @@
             const levelData = levels[currentLevel];
             createEnemys(levelData.enemys)
             bulletsLeft = levelData.bullets;
+            bulletsText.text = `Bullets Left: ${bulletsLeft}`
+            levelText.text = `Level: ${currentLevel + 1}`
         }
 
         startLevel();
@@ -286,7 +364,7 @@
 
         function fire (){    
             if (bulletsEmpty) {
-                console.log('stop here because no bullets')
+                
                 return;
             }
 
@@ -296,7 +374,7 @@
             bullet.x = rect.x; 
             bullet.y = rect.y;
             bulletsLeft = bulletsLeft - 1
-
+            bulletsText.text = `Bullets Left: ${bulletsLeft}`
             bulletsArray.push(bullet)
 
             
@@ -371,7 +449,7 @@
                         
                         score = score + 10
                         basicText.text = `Points Scored: ${score}`
-
+                        
                         if (targetsArray.length === 0) {
                             wonScene.visible = true;
                             
@@ -381,18 +459,47 @@
                 }    
             }
 
-            if (lifeScore<0) {
+            bonusBullets.x += .9; 
+            if (bonusBullets.x >= app.screen.width) {
+                bonusBullets.x =-Math.random() * 100;
+            }
+
+            //collision between the bonusBullets and bulletArray
+
+                for(let j=0; j<bulletsArray.length; j++) {
+                    let bullet = bulletsArray[j]
+                    var dx = bullet.x - bonusBullets.x;
+                    var dy = bullet.y - bonusBullets.y;
+                    var distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < bullet.width/2 + bonusBullets.width/2) {
+                        stage.removeChild(bonusBullets)
+                        stage.removeChild(bullet)
+                        bulletsArray.splice(j,1)
+                        j--
+                        bulletsLeft = bulletsLeft + 3
+                        bulletsText.text = `Bullets Left: ${bulletsLeft}`
+                    }
+                
+                }  
+            
+                
+            
+
+
+
+            if (lifeScore<=0) {
+                if (bulletsArray.length + bulletsLeft < targetsArray.length) {
+                lifeScore= lifeScore -1
                 gameOverScene.visible = true; //this will make the player go back to level 0
                 paused = true;
+                }
             }
 
             if (lifeScore>0) {
                 if (bulletsArray.length + bulletsLeft < targetsArray.length) {
-                    console.log(bulletsArray.length, bulletsLeft)
 
                     lifeScore= lifeScore -1
-                    gameOverScene.visible = true
-                    console.log("hello")
+                    repeatScene.visible = true;
                     paused = true;//display a gameOverscene but to go back to the same level
                 }
             }
@@ -404,6 +511,9 @@
             app.renderer.resize(window.innerWidth, window.innerHeight)
 
             basicText.x = window.innerWidth - 20;
+            bulletsText.x = window.innerWidth/2
+            levelText.y = window.innerHeight -40
+            levelText.x =  20
             //app.renderer will get the full size of the canvas
             gameOverBackground.y = app.renderer.height/2; 
 
@@ -411,6 +521,9 @@
 
             restartBackground.x = app.renderer.width/2
             restartBackground.y = app.renderer.height/2; 
+
+            repeatLevelBackground.x=app.renderer.width/2
+            repeatLevelBackground.y=app.renderer.height/2; 
 
         }
 
