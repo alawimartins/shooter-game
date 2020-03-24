@@ -37,10 +37,18 @@ let levels = [{
 }]
 
 
-const popupGameOver = new Popup("Game over!", "restart", nextLevel2);
+const popupGameOver = new Popup("Game over!", "restart", refreshPage);
 stage.addChild(popupGameOver.scene);
 
-console.log('popupGameOver', popupGameOver)
+const popupNextLevel = new Popup("Ready for Next Level?", "start", nextLevel2)
+stage.addChild(popupNextLevel.scene)
+
+const popupRepeatLevel = new Popup ("You lost, but you can still restart on the same level!", "repeat", repeatCurrentLevel)
+stage.addChild(popupRepeatLevel.scene)
+
+popupGameOver.hide()
+popupNextLevel.hide()
+popupRepeatLevel.hide()
 
 //adding scored points to the stage
 const basicText = new PIXI.Text(`Points Scored: ${score}`);
@@ -54,64 +62,13 @@ stage.addChild(bulletsText)
 const levelText = new PIXI.Text(`Level: ${currentLevel + 1}`);
 stage.addChild(levelText)
 
-
-
 //adding hearts to the stage
 const lifeText = new PIXI.Text(`Number of Hearts: ${lifeScore}`);
 stage.addChild(lifeText)
 
-//if the players succeed, the WonScene would be added on the top of the 
-//game with an option do go to the next level. The visibility is primarely set as false and would only turn true if condition is met
 
-//1st step is to create a container where all the elements will be added to it.
-const wonScene = new PIXI.Container();
-stage.addChild(wonScene);
-wonScene.visible = false;
-
-//2nd step is to do the background of the message, which in this case is a rectangle
-//const restartBackground = new PIXI.Graphics();
-//restartBackground.beginFill(0xff0000); //adding color to the rectangle
-//restartBackground.drawRect(-200, -200, 400, 400); //setting the anchor and mesures
-//3rd step is to add the restartBackground to the container WonScene. 
-//Note: there is no need to add this to the stage as the whole container is already added to the stage.
-//wonScene.addChild(restartBackground);
-
-//4th add a message at the top of the pop-up and add it to to the Pixi.graphics created above (restartBackground)
-const wonMessage = new PIXI.Text("You Won!");
-//wonMessage.y = -restartBackground.height/2 + 20;
-wonMessage.anchor.x = 0.5
-wonMessage.anchor.y = 0
-//restartBackground.addChild(wonMessage);
-
-
-//5th step to add the click button to go to next level 
-//for this you will need to create a rectangle with a text inside by using Pixi.Graphics 
-//and Pixi text and adding this to the restart background
-const nextLevelButton = new PIXI.Graphics();
-nextLevelButton.beginFill(0x000000); 
-nextLevelButton.drawRect(-50, -25, 100, 50);
-
-//6th step: add the button to the restart background 
-//restartBackground.addChild(nextLevelButton);
-
-let nextLevelButtonStyle = new PIXI.TextStyle({
-    fontFamily: "Futura",
-    fontSize: 20,
-    fill: "white"
-});
-//7th add the message button in the button const 
-const nextLevelText = new PIXI.Text("nextLevel", nextLevelButtonStyle);
-nextLevelText.anchor.x = .5
-nextLevelText.anchor.y = .5
-nextLevelButton.addChild(nextLevelText)
-
-//8th now we need to make the button interact.
-nextLevelButton.interactive =true;
-nextLevelButton.buttonMode = true;
-
-//9th create a function with all the elements needed once we click on the button
 function nextLevel2() {
-    popupGameOver.hide()
+    popupNextLevel.hide()
 
     // clean the scene
 
@@ -126,113 +83,21 @@ function nextLevel2() {
      
 }
 
-//10th add the event on pointerdown.
-
-nextLevelButton.on('pointerdown', nextLevel2);
-
-
-const repeatScene = new PIXI.Container();
-stage.addChild(repeatScene);
-repeatScene.visible = false;
-
-
-//const repeatLevelBackground = new PIXI.Graphics();
-//repeatLevelBackground.beginFill(0xff0000); //adding color to the rectangle
-//repeatLevelBackground.drawRect(-200, -200, 400, 400); //setting the anchor and mesures
-
-//repeatScene.addChild(repeatLevelBackground);
-
-const repeatLevelMessage = new PIXI.Text("You lost, but you can still restart on the same level!");
-//repeatLevelMessage.y = -repeatLevelBackground.height/2 + 20;
-repeatLevelMessage.anchor.x = 0.5
-repeatLevelMessage.anchor.y = 0
-//repeatLevelBackground.addChild(repeatLevelMessage);
-
-
-const repeatLevelButton = new PIXI.Graphics();
-repeatLevelButton.beginFill(0x000000); 
-repeatLevelButton.drawRect(-50, -25, 100, 50);
-
-//repeatLevelBackground.addChild(repeatLevelButton);
-
-let repeatLevelButtonStyle = new PIXI.TextStyle({
-    fontFamily: "Futura",
-    fontSize: 20,
-    fill: "white"
-});
-
-const repeatLevelText = new PIXI.Text("Repeat Level", repeatLevelButtonStyle);
-repeatLevelText.anchor.x = .5
-repeatLevelText.anchor.y = .5
-repeatLevelButton.addChild(repeatLevelText)
-
-repeatLevelButton.interactive =true;
-repeatLevelButton.buttonMode = true;
-
-
 
 function repeatCurrentLevel () {
-    repeatScene.visible = false;
+    popupRepeatLevel.hide()
 
     resetGame();
 
     startLevel();
 }
 
-
-//10th add the event on pointerdown.
-repeatLevelButton.on('pointerdown', repeatCurrentLevel);
-
-//The gameOver pop-up will be the same idea as the WonScene
-// const gameOverScene = new PIXI.Container();
-// stage.addChild(gameOverScene);
-// gameOverScene.visible = false;
-
-// const gameOverBackground = new PIXI.Graphics();
-// gameOverBackground.beginFill(0x000000);
-// gameOverBackground.drawRect(-200, -200, 400, 400);
-
-
-// gameOverScene.addChild(gameOverBackground);
-
-// let style = new PIXI.TextStyle({
-//     fontFamily: "Futura",
-//     fontSize: 64,
-//     fill: "white"
-// });
-
-// const gameOverText = new PIXI.Text("Game Over", style);
-// gameOverText.anchor.x = 0.5
-// gameOverText.anchor.y = 1
-// gameOverBackground.addChild(gameOverText);
-
-const restartButton = new PIXI.Graphics();
-restartButton.beginFill(0xff0000);
-restartButton.drawRect(-50, -25, 100, 50);
-
-//gameOverBackground.addChild(restartButton)
-
-let restartButtonStyle = new PIXI.TextStyle({
-    fontFamily: "Futura",
-    fontSize: 20,
-    fill: "white"
-});
-
-const restartText = new PIXI.Text("restart", restartButtonStyle);
-restartText.anchor.x = .5
-restartText.anchor.y = .5
-restartButton.addChild(restartText)
-
-restartButton.interactive = true;
-
-// Shows hand cursor
-restartButton.buttonMode = true;
-
 function refreshPage(){
+    popupGameOver.hide()
     // reset variables, clean scene etc.
     currentLevel = 0;
     
-    gameOverScene.visible = false;
+    
     
     score= 0;
     lifeScore = 4;
@@ -260,12 +125,6 @@ function resetGame(){
     targetsArray.length = 0
     bulletsArray.length = 0
 }
-
-
-// Pointers normalize touch and mouse
-restartButton.on('pointerdown', refreshPage)
-
-
 
 
 
@@ -302,7 +161,6 @@ function startLevel() {
 }
 
 startLevel();
-
 
 
 
@@ -442,7 +300,7 @@ function gameLoop() {
                 basicText.text = `Points Scored: ${score}`
                 
                 if (targetsArray.length === 0) {
-                    wonScene.visible = true;
+                    popupNextLevel.show();
                     
                 }
                 break;
@@ -481,7 +339,7 @@ function gameLoop() {
     if (lifeScore<=0) {
         if (bulletsArray.length + bulletsLeft < targetsArray.length) {
         lifeScore= lifeScore -1
-        gameOverScene.visible = true; //this will make the player go back to level 0
+        popupGameOver.show() //this will make the player go back to level 0
         paused = true;
         }
     }
@@ -490,7 +348,7 @@ function gameLoop() {
         if (bulletsArray.length + bulletsLeft < targetsArray.length) {
 
             lifeScore= lifeScore -1
-            repeatScene.visible = true;
+            popupRepeatLevel.show()
             paused = true;//display a gameOverscene but to go back to the same level
         }
     }
@@ -506,10 +364,11 @@ function onResize () {
     levelText.y = window.innerHeight -40
     levelText.x =  20
     //app.renderer will get the full size of the canvas
-    // gameOverBackground.y = app.renderer.height/2; 
-
-    // gameOverBackground.x = app.renderer.width/2
-
+    
+    popupNextLevel.x = app.renderer.width/2
+    popupNextLevel.y = app.renderer.height/2;
+    popupRepeatLevel.x = app.renderer.width/2
+    popupRepeatLevel.y = app.renderer.height/2;
     // restartBackground.x = app.renderer.width/2
     // restartBackground.y = app.renderer.height/2; 
 
