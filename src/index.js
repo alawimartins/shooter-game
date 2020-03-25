@@ -1,3 +1,7 @@
+ import * as PIXI from 'pixi.js'
+ 
+ import Popup from "./Popup" // the name Popup was just a chosen one. This is not the actual class
+ 
  //implementing the PIXI application and appending it to the body
  const app = new PIXI.Application({
     width: window.innerWidth, height: window.innerHeight, backgroundColor: 0x1099bb, resolution: 1, autoResize: true,
@@ -168,9 +172,9 @@ startLevel();
 function setup() {
 
 //Create the `rect` sprite 
-rect = new PIXI.Graphics();
-rect.beginFill(0xff0000);
-rect.drawRect(-20, -20, 40, 40);
+rect = PIXI.Sprite.from("https://media-exp1.licdn.com/dms/image/C5603AQG-5GLL7x0v1Q/profile-displayphoto-shrink_200_200/0?e=1585785600&v=beta&t=VjsZ7MFaQgpGv8RNCaKXIZ9eksGGQlo-eA5vmv2_ZWw");
+//rect.beginFill(0xff0000);
+//rect.drawRect(-20, -20, 40, 40);
 rect.y = app.screen.height - 150; 
 rect.x = app.screen.width/2
 stage.addChild(rect);

@@ -1,3 +1,4 @@
+import * as PIXI from 'pixi.js'
 class Popup {
     constructor(title, buttonMessage, onButtonClicked) {
         //container
@@ -55,6 +56,8 @@ class Popup {
         this.scene.y = y;
     }
 
+
+
     get y() {
         return this.scene.y
     }
@@ -75,7 +78,7 @@ class Popup {
     }
 }
 
-
+export default Popup; // this popup is the name of the class (not the file)
 
 // //1st step is to create a container where all the elements will be added to it.
 // const wonScene = new PIXI.Container();
