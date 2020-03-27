@@ -1,10 +1,11 @@
 import * as PIXI from 'pixi.js'
 
+
 class Marker {    
     constructor (data,imageName) {
         this.textSceneWithImage = new PIXI.Container()
 
-        this.basicText = new PIXI.Text(`${data}`);
+        this.basicText = new PIXI.Text(`${data}`, {fontFamily: 'Press Start 2P', fontSize: 20, fill: 'black'});
         this.basicText.anchor.x = 0;
         this.basicText.anchor.y = 0.5;
         this.textSceneWithImage.addChild(this.basicText)
@@ -18,7 +19,7 @@ class Marker {
         this.textSceneWithImage.addChild(image)
         image.anchor.set(.5)
 
-        image.x = -25; //-image.width 
+        image.x = 50//image.width 
     }
 
     updateScore(val) {
