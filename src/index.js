@@ -126,17 +126,17 @@ function webFontLoaded () {
         let minValueY= screenSizeY - gameSizeY/2 + 25
         let maxValueY= 200
         let levels = [{
-            bullets: 6,
+            bullets: 5,
             enemys: 1,
         }, {
-            bullets: 20,
-            enemys: 1
+            bullets: 15,
+            enemys: 8
         }, {
-            bullets: 1,
-            enemys: 1
+            bullets: 12,
+            enemys: 10
         }, {
-            bullets: 1,
-            enemys: 1
+            bullets: 8,
+            enemys: 8
         }]
 
 
