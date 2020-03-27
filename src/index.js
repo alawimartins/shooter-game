@@ -103,7 +103,7 @@ function webFontLoaded () {
         //adding border to the game
         const border = new PIXI.Graphics()
         border.beginFill(0xFEEB77,0.5);
-        border.drawRect(screenSizeX-250, screenSizeY-300, gameSizeX, gameSizeY);
+        border.drawRect(screenSizeX-gameSizeX/2, screenSizeY-gameSizeY/2, gameSizeX, gameSizeY);
         border.endFill();
 
         maskedContainer.addChild(border)
@@ -156,7 +156,7 @@ function webFontLoaded () {
         stage.addChild(popupRepeatLevel.scene)
 
         const popupGameFinished = new Popup ("You Won! Do you want to Restart?",refreshPage,restartButton, sign)
-        stage.addChild(popupRepeatLevel.scene)
+        stage.addChild(popupGameFinished.scene)
 
         popupGameOver.hide()
         popupNextLevel.hide()
@@ -472,7 +472,8 @@ function webFontLoaded () {
 
             if (lifeScore<=0) {
                 if (bulletsArray.length + bulletsLeft < targetsArray.length) {
-                lifeScore= lifeScore -1
+                lifeScore= lifeScore -1 
+                // console.log(lifeScore,"lifeScore")
                 popupGameOver.show() //this will make the player go back to level 0
                 paused = true;
                 }
@@ -497,9 +498,16 @@ function webFontLoaded () {
 
         function onResize () {
             app.renderer.resize(window.innerWidth, window.innerHeight)
+            screenSizeX = app.screen.width/2
+            screenSizeY = app.screen.height/2
 
-            levelText.y = window.innerHeight -40
-            levelText.x =  20
+            border.clear();
+            border.beginFill(0xFEEB77,0.5);
+            border.drawRect(screenSizeX-gameSizeX/2, screenSizeY-gameSizeY/2, gameSizeX, gameSizeY);
+            border.endFill();
+
+            levelText.y = screenSizeY + gameSizeY/2.2
+            levelText.x = screenSizeX - gameSizeX/3
             //app.renderer will get the full size of the canvas
             
             popupNextLevel.x = app.renderer.width/2
