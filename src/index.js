@@ -4,15 +4,23 @@
  import heart from "./images/heart.png"
  import bulletfire from "./images/bullet.png"
  import Popup from "./Popup" // the name Popup was just a chosen one. This is not the actual class
+ import Pannel from "./Pannel"
  import Marker from "./Marker"
  import enemyImage from"./images/enemy.png"
  import {PixelateFilter} from '@pixi/filter-pixelate';
  import displacementImage from "./images/displacement_map_repeat.jpg"
  import heartOnText from "./images/heartfortext.png"
  import bulletOnText from "./images/bulletfortext.png"
+ import enemyOnText from "./images/enemyfortext.png"
  import startButton from "./images/start.png"
  import restartButton from "./images/restart.png"
  import sign from "./images/sign.png"
+ import keyLeftRight from "./images/keyboard.png"
+ import spaceBar from "./images/spacebar.png"
+ import instruction from "./images/instruction.png"
+ import fireButton from "./images/fireButton.png"
+ import help from "./images/help.png"
+
  
 
  
@@ -43,7 +51,7 @@ window.WebFontConfig = {
 }());
 
 function webFontLoaded () {
-    app.loader.add([sky,spaceship,heart,bulletfire,enemyImage, displacementImage, heartOnText,bulletOnText, startButton,restartButton,sign]);
+    app.loader.add([instruction, sky,spaceship,heart,bulletfire,enemyImage, displacementImage, heartOnText,bulletOnText, enemyOnText ,startButton,restartButton,sign,spaceBar,keyLeftRight ,help]);
     app.loader.load(initGame)
 
     function initGame() {
@@ -146,6 +154,23 @@ function webFontLoaded () {
         const markerBullet = new Marker (bulletsLeft, bulletOnText)
         stage.addChild(markerBullet.textSceneWithImage);
 
+        const markerEnemy = new Marker (bulletsLeft, enemyOnText)
+        stage.addChild(markerEnemy.textSceneWithImage);
+
+        
+
+        const pannelMove = new Pannel (hideTheInstruction) 
+        stage.addChild(pannelMove.scene)
+
+        const helpButton = new PIXI.Sprite.from(help)
+        stage.addChild(helpButton)
+        helpButton.interactive =true;
+        helpButton.buttonMode = true;
+        helpButton.on('pointerdown', function(){
+            pannelMove.show();
+        });
+        
+
         const popupGameOver = new Popup("Game over!", refreshPage, restartButton, sign);
         stage.addChild(popupGameOver.scene);
 
@@ -162,7 +187,7 @@ function webFontLoaded () {
         popupNextLevel.hide()
         popupRepeatLevel.hide()
         popupGameFinished.hide()
-
+        pannelMove.show()
         //adding scored points to the stage
        
 
@@ -172,6 +197,10 @@ function webFontLoaded () {
        
 
         let bonusBullets;
+
+        function hideTheInstruction() {
+            pannelMove.hide()
+        }
 
         function nextLevel2() {
             popupNextLevel.hide()
@@ -271,6 +300,7 @@ function webFontLoaded () {
             // set the number of bullets
             const levelData = levels[currentLevel];
             createEnemys(levelData.enemys)
+            markerEnemy.updateScore(levelData.enemys)
             bulletsLeft = levelData.bullets;
             markerBullet.updateScore(bulletsLeft);
             levelText.text = `Level: ${currentLevel + 1}`
@@ -302,6 +332,7 @@ function webFontLoaded () {
          * EVENTS (Fire, move rect)
          */
 
+
         document.body.onkeydown = onKeyDown;
         document.body.onkeyup = onKeyUp;
 
@@ -326,6 +357,39 @@ function webFontLoaded () {
                 velocity.x = 10;
                 velocity.y = 0;
             } 
+        }
+
+
+        console.log('PIXI.utils', PIXI.utils);
+        
+        if(PIXI.utils.isMobile.any) {
+            const button = new PIXI.Sprite.from(fireButton)
+            button.x = window.innerWidth/2 + screenSizeX/4
+            button.y = screenSizeY + gameSizeY/4
+            stage.addChild(button)
+            button.interactive =true;
+            button.buttonMode = true;
+            button.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
+            button.on('pointerdown', function(){
+                 fire();
+                console.log("fire")
+            })
+            stage.interactive = true;
+            stage.on("touchmove", function (event){
+                const newPosition = event.data.getLocalPosition(stage);
+                let x = newPosition.x;
+                let y = newPosition.y;   
+                rect.x = x; 
+                rect.y = y        
+                
+            })
+            pannelMove.reSize()            
+
+            alert()
+            
+
+
+
         }
 
         window.addEventListener('resize', onResize)
@@ -413,12 +477,12 @@ function webFontLoaded () {
                         bulletsArray.splice(j,1)
                         
                         targetsArray.splice(i,1)
+                        markerEnemy.updateScore(targetsArray.length)
+
                         i--
                         j--
                         
-                        score = score + 10
-                        console.log(currentLevel,"currentLevel")
-                        console.log(levels.length,"levels.length")
+                    
                         if (targetsArray.length === 0) {
                             if (currentLevel >= levels.length -1 ) {
                                 popupGameFinished.show()
@@ -523,6 +587,9 @@ function webFontLoaded () {
             popupGameOver.x = app.renderer.width/2;
             popupGameOver.y = popupRepeatLevel.y;
 
+            pannelMove.x = app.renderer.width/2;
+            pannelMove.y= app.renderer.height/2;
+
             popupGameFinished.x = app.renderer.width/2;
             popupGameFinished.y = popupRepeatLevel.y;
             
@@ -548,8 +615,15 @@ function webFontLoaded () {
             markerLife.textSceneWithImage.x = screenSizeX - gameSizeX/3
 
             markerBullet.textSceneWithImage.y = screenSizeY - gameSizeY/2
-            markerBullet.textSceneWithImage.x = screenSizeX - gameSizeX/6
+            markerBullet.textSceneWithImage.x = markerLife.textSceneWithImage.x + 90//screenSizeX - gameSizeX/6
 
+            markerEnemy.textSceneWithImage.y = screenSizeY - gameSizeY/2
+            markerEnemy.textSceneWithImage.x = markerBullet.textSceneWithImage.x + 90; //screenSizeX - gameSizeX/20
+
+            helpButton.y = screenSizeY - gameSizeY/2
+            helpButton.x = screenSizeX + gameSizeX/1.1
+    
+            
             // popupGameOver.setPosition(app.renderer.width/2,app.renderer.height/2)
         }
 

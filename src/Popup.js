@@ -15,6 +15,8 @@ class Popup {
         
         //button
         const button = new PIXI.Sprite.from(buttonType)
+       
+        
         
         // button.beginFill(0x000000); 
         // button.drawRect(-50, -25, 100, 50);
