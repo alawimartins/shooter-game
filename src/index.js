@@ -6,6 +6,11 @@
  import Popup from "./Popup" // the name Popup was just a chosen one. This is not the actual class
  import Pannel from "./Pannel"
  import Marker from "./Marker"
+ import Enemy from "./Enemy"
+ import EnemySpeed from "./EnemySpeed"
+ import EnemySpeedCircle from "./EnemySpeedCircle"
+ import EnemyColorAlpha from "./EnemyColorAlpha"
+ import EnemyFlyingCircle from "./EnemyFlyingCircle"
  import enemyImage from"./images/enemy.png"
  import {PixelateFilter} from '@pixi/filter-pixelate';
  import displacementImage from "./images/displacement_map_repeat.jpg"
@@ -19,7 +24,16 @@
  import spaceBar from "./images/spacebar.png"
  import instruction from "./images/instruction.png"
  import fireButton from "./images/fireButton.png"
+ import instspace from "./images/bulletandenemy.png"
  import help from "./images/help.png"
+ import enemys2 from "./images/enemy2.png"
+ import enemys3 from "./images/enemy3.png"
+ import enemys4 from "./images/mosquito.png"
+ import music from "./audio/takeonme.mp3"
+ import music2 from "./audio/weekend.mp3"
+ import imageAudio from "./images/audio.png"
+ import {Howl, Howler} from 'howler';
+
 
  
 
@@ -51,10 +65,12 @@ window.WebFontConfig = {
 }());
 
 function webFontLoaded () {
-    app.loader.add([instruction, sky,spaceship,heart,bulletfire,enemyImage, displacementImage, heartOnText,bulletOnText, enemyOnText ,startButton,restartButton,sign,spaceBar,keyLeftRight ,help]);
+    app.loader.add([instruction, sky,spaceship,heart,bulletfire,enemyImage, displacementImage, heartOnText,bulletOnText, enemyOnText ,startButton,restartButton,sign,spaceBar,keyLeftRight ,help,instspace, enemys2,enemys3,enemys4,imageAudio,music2]);
     app.loader.load(initGame)
 
-    function initGame() {
+    function initGame(loader, resources) {
+        console.log(resources);
+        
 
         const backgroundSky = PIXI.Sprite.from(sky);
         console.log('backgroundSky', backgroundSky.width)
@@ -64,6 +80,7 @@ function webFontLoaded () {
         let screenSizeX = app.screen.width/2
         let screenSizeY = app.screen.height/2
 
+        
         
         
         
@@ -105,15 +122,11 @@ function webFontLoaded () {
         const filter = new PixelateFilter()
         filter.size = 3;
         pixelImages.filters = [filter]
-        const gameSizeX =500
-        const gameSizeY = 600
+        let gameSizeX =500
+        let gameSizeY = 600
 
         //adding border to the game
         const border = new PIXI.Graphics()
-        border.beginFill(0xFEEB77,0.5);
-        border.drawRect(screenSizeX-gameSizeX/2, screenSizeY-gameSizeY/2, gameSizeX, gameSizeY);
-        border.endFill();
-
         maskedContainer.addChild(border)
 
         maskedContainer.mask = border;
@@ -123,6 +136,7 @@ function webFontLoaded () {
             x: 0,
             y: 0,
         }
+        let isMobile = PIXI.utils.isMobile.any;
         let rect;
         let targetsArray = []
         let bulletsArray =[];
@@ -130,26 +144,77 @@ function webFontLoaded () {
         let bulletsEmpty = false;
         let score= 0;
         let lifeScore = 3;
+        let audio=true;
+        let fingerX = 0;
+        let fingerY = 0;
+
         let currentLevel = 0;
-        let minValueY= screenSizeY - gameSizeY/2 + 25
-        let maxValueY= 200
+        let minValueY= screenSizeY - gameSizeY/2 + 15
+        let maxValueY= 130
         let levels = [{
-            bullets: 5,
-            enemys: 1,
-        }, {
-            bullets: 15,
-            enemys: 8
-        }, {
-            bullets: 12,
-            enemys: 10
+            bullets: 6,
+            enemys: [
+                { type: Enemy, number: 2 },
+            ],
         }, {
             bullets: 8,
-            enemys: 8
-        }]
+            enemys: [
+                { type: Enemy, number: 4 },
+                { type :EnemyFlyingCircle, number: 1 }
+            ],
+        }, {
+            bullets: 8,
+            enemys: [
+                { type: Enemy, number: 5 },
+                { type: EnemySpeed, number: 2 },
+             ],
+        }, {
+            bullets: 8,
+            enemys: [
+                { type: Enemy, number: 4 },
+                { type: EnemySpeed, number: 1 },
+                { type: EnemyColorAlpha, number: 2 }
+            ],
+        },{
+            bullets: 14,
+            enemys: [
+                { type: Enemy, number: 4 },
+                { type: EnemySpeed, number: 3 },
+                { type: EnemyColorAlpha, number: 3 },
+                { type :EnemyFlyingCircle, number: 2 }
+            ],
+        }, {
+            bullets: 9,
+            enemys: [
+                { type: Enemy, number: 2 },
+                { type: EnemySpeed, number: 1 },
+                { type: EnemyColorAlpha, number: 2 },
+                { type: EnemySpeedCircle, number: 3 }
+            ],
+        }, {
+            bullets: 11,
+            enemys: [
+                { type: Enemy, number: 2 },
+                { type: EnemySpeed, number: 2 },
+                { type: EnemyColorAlpha, number: 3 },
+                { type: EnemySpeedCircle, number: 2 }
+            ],
+        },{
+            bullets: 11,
+            enemys: [
+                { type: Enemy, number: 2 },
+                { type: EnemySpeed, number: 2 },
+                { type: EnemyColorAlpha, number: 3 },
+                { type: EnemySpeedCircle, number: 2 },
+                { type :EnemyFlyingCircle, number: 2 }
+            ],
+        }
+    ]
 
 
         const  markerLife = new Marker(lifeScore, heartOnText)
         stage.addChild(markerLife.textSceneWithImage);
+
         
         const markerBullet = new Marker (bulletsLeft, bulletOnText)
         stage.addChild(markerBullet.textSceneWithImage);
@@ -162,6 +227,19 @@ function webFontLoaded () {
         const pannelMove = new Pannel (hideTheInstruction) 
         stage.addChild(pannelMove.scene)
 
+        var sound = new Howl({
+            src: [music],
+            onend: function() {
+               sound = new Howl ({
+                    src: [music2],
+                })
+                sound.play()
+            }
+        })
+        sound.play()
+          
+          
+
         const helpButton = new PIXI.Sprite.from(help)
         stage.addChild(helpButton)
         helpButton.interactive =true;
@@ -169,6 +247,21 @@ function webFontLoaded () {
         helpButton.on('pointerdown', function(){
             pannelMove.show();
         });
+
+        const audioImage = new PIXI.Sprite.from(imageAudio)
+        stage.addChild(audioImage)
+        audioImage.interactive =true;
+        audioImage.buttonMode = true;
+        audioImage.on('pointerdown', function(){
+            audio = !audio
+            if(audio){
+                sound.play();
+            } else {
+                sound.pause();
+            }
+        });
+
+        
         
 
         const popupGameOver = new Popup("Game over!", refreshPage, restartButton, sign);
@@ -188,6 +281,8 @@ function webFontLoaded () {
         popupRepeatLevel.hide()
         popupGameFinished.hide()
         pannelMove.show()
+        
+
         //adding scored points to the stage
        
 
@@ -209,7 +304,7 @@ function webFontLoaded () {
 
             currentLevel++;
 
-            if (currentLevel === 1) {
+            if (currentLevel === 1 || currentLevel ===3) {
                 bonusBullets = PIXI.Sprite.from(heart)
                 bonusBullets.tick = 0;
                 bonusBullets.scale.set(.05);
@@ -253,8 +348,8 @@ function webFontLoaded () {
         }
 
         function resetGame(){
-            rect.y = screenSizeY+160;
-            rect.x = screenSizeX/2
+            rect.y = fingerY = screenSizeY * (isMobile ? 1.7 : 1.4)
+            rect.x = fingerX= screenSizeX/2
             bulletsEmpty = false
             paused = false;
             markerLife.updateScore(lifeScore);
@@ -270,24 +365,27 @@ function webFontLoaded () {
         }
 
 
-
         // enemys function
-        function createEnemys(enemys) {
-            
-            for(let i=0; i<enemys; i++){
+        function createEnemys(enemys) { 
 
-                const circle = PIXI.Sprite.from(enemyImage)
-                circle.scale.set(.04);
-                circle.anchor.set(.5)
-                
-            
-                circle.x = Math.random()*screenSizeX -200 + (screenSizeX -200);
-                circle.y = minValueY + Math.random()*(maxValueY-minValueY)
-                
+            for(let i=0; i< enemys.length; i++) { // loop through the different type of enemies
+                const classEnemy = enemys[i].type; // enemy type
+                const numberEnemiesToCreate = enemys[i].number; // number: number of enemies
 
-                targetsArray.push(circle)
-
-                pixelImages.addChild(circle)
+                for (let k = 0; k < numberEnemiesToCreate; k++) {
+                    // here create the enemies
+                    let enemy = new classEnemy();
+                    if (enemy.type === "circle") {
+                        enemy.x= screenSizeX
+                    } else {
+                        enemy.x = Math.random()*screenSizeX -200 + (screenSizeX -200) 
+                    }
+                    
+                    enemy.y = minValueY + enemy.height + Math.random()*(maxValueY-minValueY) 
+                    targetsArray.push(enemy)
+    
+                    pixelImages.addChild(enemy)
+                }
             }
         }
 
@@ -300,7 +398,7 @@ function webFontLoaded () {
             // set the number of bullets
             const levelData = levels[currentLevel];
             createEnemys(levelData.enemys)
-            markerEnemy.updateScore(levelData.enemys)
+            markerEnemy.updateScore(targetsArray.length)
             bulletsLeft = levelData.bullets;
             markerBullet.updateScore(bulletsLeft);
             levelText.text = `Level: ${currentLevel + 1}`
@@ -319,10 +417,11 @@ function webFontLoaded () {
         //Create the `rect` sprite 
         rect = PIXI.Sprite.from(spaceship)
         rect.scale.set(.18)
-        rect.anchor.x = .5
-        rect.y = screenSizeY+160; 
-        rect.x = screenSizeX
+        rect.y = fingerY= screenSizeY * (isMobile ? 1.7 : 1.4); 
+        rect.x =fingerX =screenSizeX;
         pixelImages.addChild(rect);
+        rect.anchor.set(0.5, isMobile ? 1 : 0)   
+        rect.hitArea = new PIXI.Rectangle(-100/2, -100/2, 100, 200);
 
         //Start the game loop 
         app.ticker.add(delta => gameLoop(delta));
@@ -362,30 +461,60 @@ function webFontLoaded () {
 
         console.log('PIXI.utils', PIXI.utils);
         
-        if(PIXI.utils.isMobile.any) {
+        if(isMobile) {
+
+            gameSizeX =app.screen.width
+            gameSizeY= app.screen.height
             const button = new PIXI.Sprite.from(fireButton)
-            button.x = window.innerWidth/2 + screenSizeX/4
-            button.y = screenSizeY + gameSizeY/4
-            stage.addChild(button)
+            let shipCanMove = true;
+            button.x = screenSizeX 
+            button.y = screenSizeY + gameSizeY/2.5
+            button.anchor.set(0.5);
+            stage.addChildAt(button, 2)
             button.interactive =true;
             button.buttonMode = true;
-            button.hitArea = new PIXI.Rectangle(0, 0, 100, 100);
+            button.hitArea = new PIXI.Rectangle(-100/2, -100/2, 100, 100);
             button.on('pointerdown', function(){
+                shipCanMove = false
                  fire();
-                console.log("fire")
             })
-            stage.interactive = true;
-            stage.on("touchmove", function (event){
+            maskedContainer.on('pointerup', function(){
+                shipCanMove = true
+            })
+
+            maskedContainer.interactive = true;
+            
+            maskedContainer.on("touchstart", function (event){
+                if (!shipCanMove) return;
+                
                 const newPosition = event.data.getLocalPosition(stage);
-                let x = newPosition.x;
-                let y = newPosition.y;   
-                rect.x = x; 
-                rect.y = y        
+                fingerX = newPosition.x;
+                // fingerY = newPosition.y;  
+                
+                // if (fingerY < gameSizeY/1.6) {
+                //     fingerY =gameSizeY/1.6
+                // }
+            })
+
+            maskedContainer.on("touchmove", function (event){
+                if (!shipCanMove) return;
+
+                const newPosition = event.data.getLocalPosition(stage);
+                fingerX = newPosition.x;
+                // fingerY = newPosition.y;   
+
+                // if (fingerY < gameSizeY/1.6) {
+                //     fingerY =gameSizeY/1.6
+                // }
+
+                 
                 
             })
-            pannelMove.reSize()            
-
-            alert()
+            pannelMove.reSize()
+            popupGameOver.reSize()
+            popupNextLevel.reSize()
+            popupRepeatLevel.reSize()
+            popupGameFinished.reSize()      
             
 
 
@@ -404,7 +533,9 @@ function webFontLoaded () {
             bullet.anchor.x=.5
             bullet.anchor.y =1
             bullet.x = rect.x; 
-            bullet.y = rect.y;
+            bullet.y = rect.y + (isMobile ? -rect.height : 0);
+
+            console.log(rect.y, isMobile ? -rect.height : 0)
             bulletsLeft = bulletsLeft - 1
             markerBullet.updateScore(bulletsLeft)
             bulletsArray.push(bullet)
@@ -435,6 +566,16 @@ function webFontLoaded () {
                 rect.x = screenSizeX -200;
             }
 
+            if (isMobile) {
+                const ease = 0.05;
+
+                let distX = (fingerX - rect.x) * ease;
+                rect.x = rect.x + distX;
+
+                let distY = (fingerY - rect.y) * ease;
+                rect.y = rect.y + distY;
+            }
+
 
             // here move the bullets
             // here increment the positions
@@ -451,11 +592,16 @@ function webFontLoaded () {
             // here move the enemies
             // here increment the positions
             for (let i = 0; i < targetsArray.length; i++) {
-                const circle = targetsArray[i];
-                circle.x += .9; 
+                const enemy = targetsArray[i];
+                enemy.x += enemy.speed; 
+                // enemy.y -= enemy.speedY
             
-                if (circle.x >= screenSizeX+gameSizeX/1.94) {
-                    circle.x = screenSizeX-gameSizeX/1.94;
+                enemy.y += Math.cos(enemy.tick / 12) * enemy.amplitude;
+                
+                enemy.update();
+
+                if (enemy.x >= screenSizeX+gameSizeX/1.9) {
+                    enemy.x = screenSizeX-gameSizeX/1.9;
                 }
             }
             
@@ -467,10 +613,10 @@ function webFontLoaded () {
                     let bullet = bulletsArray[j];
 
                     let circle = targetsArray[i];
-                    var dx = bullet.x - circle.x;
-                    var dy = bullet.y - circle.y;
+                    var dx = bullet.x - (circle.x + circle.sprite.x);
+                    var dy = bullet.y - (circle.y + circle.sprite.y);
                     var distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < bullet.width/2 + circle.width/2) {
+                    if (distance < bullet.width/2 + circle.sprite.width/2) {
                         pixelImages.removeChild(circle)
                         pixelImages.removeChild(bullet)
                         console.log("bullet1",bullet)
@@ -503,8 +649,9 @@ function webFontLoaded () {
                 bonusBullets.y += Math.cos(bonusBullets.tick / 12) * 5;
                 
                 bonusBullets.tick++; 
-                if (bonusBullets.x >= screenSizeX+200) {
-                    bonusBullets.x =screenSizeX-200;
+
+                if (bonusBullets.x >= screenSizeX+gameSizeX/1.78) {
+                    bonusBullets.x = screenSizeX-gameSizeX/1.78;
                 }
                 for(let j=0; j<bulletsArray.length; j++) {
                     let bullet = bulletsArray[j]
@@ -566,8 +713,10 @@ function webFontLoaded () {
             screenSizeY = app.screen.height/2
 
             border.clear();
-            border.beginFill(0xFEEB77,0.5);
-            border.drawRect(screenSizeX-gameSizeX/2, screenSizeY-gameSizeY/2, gameSizeX, gameSizeY);
+            border.beginFill(0xFF0000);
+            const wMask = gameSizeX;
+            const hMask = gameSizeY;
+            border.drawRect(screenSizeX-wMask/2, screenSizeY- hMask/2, wMask, hMask);
             border.endFill();
 
             levelText.y = screenSizeY + gameSizeY/2.2
@@ -611,17 +760,20 @@ function webFontLoaded () {
             backgroundSky.scale.set(scale);
             backgroundSkyMask.scale.set(scale)
 
-            markerLife.textSceneWithImage.y = screenSizeY - gameSizeY/2
+            markerLife.textSceneWithImage.y = screenSizeY - gameSizeY/2 + 15
             markerLife.textSceneWithImage.x = screenSizeX - gameSizeX/3
 
-            markerBullet.textSceneWithImage.y = screenSizeY - gameSizeY/2
+            markerBullet.textSceneWithImage.y = markerLife.textSceneWithImage.y
             markerBullet.textSceneWithImage.x = markerLife.textSceneWithImage.x + 90//screenSizeX - gameSizeX/6
 
-            markerEnemy.textSceneWithImage.y = screenSizeY - gameSizeY/2
+            markerEnemy.textSceneWithImage.y = markerLife.textSceneWithImage.y
             markerEnemy.textSceneWithImage.x = markerBullet.textSceneWithImage.x + 90; //screenSizeX - gameSizeX/20
 
-            helpButton.y = screenSizeY - gameSizeY/2
-            helpButton.x = screenSizeX + gameSizeX/1.1
+            helpButton.y = markerLife.textSceneWithImage.y
+            helpButton.x =screenSizeX  + gameSizeX/2 - helpButton.width - 10;
+
+            audioImage.y = screenSizeY + gameSizeY/2 - audioImage.height 
+            audioImage.x =screenSizeX  + gameSizeX/2 - helpButton.width - 10;
     
             
             // popupGameOver.setPosition(app.renderer.width/2,app.renderer.height/2)

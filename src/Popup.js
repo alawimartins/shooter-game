@@ -7,11 +7,11 @@ class Popup {
         this.scene = new PIXI.Container();
         
         //we will create a background
-        const background = new PIXI.Sprite.from(sign)
-        background.anchor.y = 1
-        background.anchor.x = 0.5
-        background.scale.set(1.8) 
-        this.scene.addChild(background)
+        this.background = new PIXI.Sprite.from(sign)
+        this.background.anchor.y = 1
+        this.background.anchor.x = 0.5
+        this.background.scale.set(1.8) 
+        this.scene.addChild(this.background)
         
         //button
         const button = new PIXI.Sprite.from(buttonType)
@@ -72,6 +72,16 @@ class Popup {
 
     show() {
         this.scene.visible = true
+    }
+
+    reSize () {
+        
+        //get the width of the pannel
+        this.background.width
+        //get width of the window
+        window.innerWidth
+        //find the scale to fit the pannel in the windows bond
+        this.scene.scale.set(window.innerWidth / this.scene.width)
     }
 }
 

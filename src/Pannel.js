@@ -67,7 +67,7 @@ class Pannel {
             this.onButtonClickedFinished()
          } else {
             this.message.text = "Fire to your enymies pressing:"
-            this.keyboard.texture = PIXI.Texture.from(spaceshipleft)
+            this.keyboard.texture = PIXI.Texture.from(instspace)
             this.button.texture = PIXI.Texture.from(close)
             this.buttonclicked = true
          }
@@ -102,7 +102,7 @@ class Pannel {
     hide() {
         this.scene.visible = false
         this.message.text = "Move the spaceship left and right:"
-        this.keyboard.texture = PIXI.Texture.from(instspace)
+        this.keyboard.texture = PIXI.Texture.from(spaceshipleft)
         this.button.texture = PIXI.Texture.from(next)
         this.buttonclicked = false 
     }

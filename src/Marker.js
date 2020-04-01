@@ -6,8 +6,8 @@ class Marker {
         this.textSceneWithImage = new PIXI.Container()
 
         this.basicText = new PIXI.Text(`${data}`, {fontFamily: 'Press Start 2P', fontSize: 20, fill: 'black'});
-        this.basicText.anchor.x = 0;
-        this.basicText.anchor.y = 0.5;
+        this.basicText.anchor.x = 1;
+        this.basicText.anchor.y = 0;
         this.textSceneWithImage.addChild(this.basicText)
 
         const image = PIXI.Sprite.from(imageName)
@@ -17,9 +17,9 @@ class Marker {
         image.scale.set(scale)
 
         this.textSceneWithImage.addChild(image)
-        image.anchor.set(.5)
+        image.anchor.set(0)
 
-        image.x = 50//image.width 
+        image.x = 4//image.width 
     }
 
     updateScore(val) {
