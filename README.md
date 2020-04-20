@@ -1,7 +1,5 @@
 # shooter-game
 
-- `Develop` branch
-
 Built with Pixi.js and Javascript. First project using Webpack / Npm.
 
 - `npm i`
@@ -9,4 +7,7 @@ Built with Pixi.js and Javascript. First project using Webpack / Npm.
 
 ## Game
 See demo here: https://alawimartins.github.io/shooter
+
+![GitHub Logo](/preview/preview.png)
+
 
